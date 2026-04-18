@@ -10,4 +10,4 @@
         $lib = Get-ChildItem cryptopp/build -Filter "*.lib" -Recurse | Select-Object -First 1
         Copy-Item $lib.FullName "cryptopp\x64\Release\cryptlib.lib" -Force
 
-github.com/soker1985-cmyk/emule-eagle/actions/workflows/build.yml
+
