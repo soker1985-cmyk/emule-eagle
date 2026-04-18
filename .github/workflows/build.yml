@@ -7,7 +7,7 @@
         cmake -S cryptopp -B cryptopp/build -G "Visual Studio 17 2022" -A x64
         cmake --build cryptopp/build --config Release
         New-Item -ItemType Directory -Force -Path "cryptopp\x64\Release" | Out-Null
-        $lib = Get-ChildItem cryptopp/build -Filter "*.lib" -Recurse | Select-Object -First 1
+        $zip = Get-ChildItem -Filter "*.zip" | Select-Object -First 
         Copy-Item $lib.FullName "cryptopp\x64\Release\cryptlib.lib" -Force
 
 
