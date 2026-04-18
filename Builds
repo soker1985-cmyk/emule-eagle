@@ -1,0 +1,36 @@
+.github/workflows/build.yml
+name: Compilar eMule Eagle
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Extraer ZIP
+      shell: pwsh
+      run: |
+        $zip = Get-ChildItem -Filter "*.zip" | Select-Object -First 1
+        Expand-Archive $zip.FullName -DestinationPath extracted
+        Copy-Item "extracted\eMule-Eagle\*" . -Recurse -Force
+    - name: Compilar Crypto++
+      shell: pwsh
+      run: |
+        Invoke-WebRequest "https://github.com/weidai11/cryptopp/archive/refs/tags/CRYPTOPP_8_9_0.zip" -OutFile cryptopp.zip
+        Expand-Archive cryptopp.zip -DestinationPath .
+        Rename-Item "cryptopp-CRYPTOPP_8_9_0" "cryptopp"
+        $p = Get-ChildItem cryptopp -Filter "cryptlib.vcxproj" -Recurse | Select-Object -First 1
+        msbuild $p.FullName /p:Configuration=Release /p:Platform=x64 /m /nologo /verbosity:minimal
+    - name: Compilar zlib
+      shell: pwsh
+      run: |
+        Invoke-WebRequest "https://github.com/madler/zlib/archive/refs/tags/v1.3.1.zip" -OutFile zlib.zip
+        Expand-Archive zlib.zip -DestinationPath .
+        Rename-Item "zlib-1.3.1" "zlib"
+        cmake -S zlib -B zlib/build_x64 -G "Visual Studio 17 2022" -A x64
+        cmake --build zlib/build_x64 --config Release
+        $dest = "zlib\contrib\vstudio\vc\x64\Release"
+        New-Item -ItemType Directory -Force -Path $dest | Out-Null
+        $lib = Get-ChildItem zlib/build_x64 -Filter "*.lib" -Recur
